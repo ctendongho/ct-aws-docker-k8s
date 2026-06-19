@@ -39,3 +39,10 @@ module "security" {
   environment  = var.environment
   vpc_id       = module.networking.vpc_id
 }
+
+module "iam" {
+  source = "../../modules/iam"
+
+  project_name = var.project_name
+  environment  = var.environment
+}
