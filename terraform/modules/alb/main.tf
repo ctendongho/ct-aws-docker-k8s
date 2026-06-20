@@ -1,5 +1,5 @@
 resource "aws_lb" "main" {
-  name               = "${var.project_name}-${var.environment}-alb"
+  name               = "ct-aws-dk8s-alb"
   internal           = false
   load_balancer_type = "application"
   security_groups    = [var.alb_sg_id]
@@ -8,14 +8,14 @@ resource "aws_lb" "main" {
   enable_deletion_protection = false
 
   tags = {
-    Name        = "${var.project_name}-${var.environment}-alb"
+    Name        = "ct-aws-dk8s-alb"
     Environment = var.environment
     Project     = var.project_name
   }
 }
 
 resource "aws_lb_target_group" "app" {
-  name        = "${var.project_name}-${var.environment}-tg"
+  name        = "ct-aws-dk8s-tg"
   port        = 80
   protocol    = "HTTP"
   vpc_id      = var.vpc_id
@@ -32,7 +32,7 @@ resource "aws_lb_target_group" "app" {
   }
 
   tags = {
-    Name        = "${var.project_name}-${var.environment}-tg"
+    Name        = "ct-aws-dk8s-tg"
     Environment = var.environment
     Project     = var.project_name
   }
