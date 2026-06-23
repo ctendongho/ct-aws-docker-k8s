@@ -13,3 +13,11 @@ output "private_subnet_ids" {
 output "alb_dns_name" {
   value = module.alb.alb_dns_name
 }
+
+output "eks_cluster_name" {
+  value = module.eks.cluster_name
+}
+
+output "eks_cluster_endpoint" {
+  value = module.eks.cluster_endpoint
+}

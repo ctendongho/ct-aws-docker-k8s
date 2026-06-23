@@ -47,6 +47,16 @@ module "iam" {
   environment  = var.environment
 }
 
+module "eks" {
+  source = "../../modules/eks"
+
+  project_name         = "ct-aws-dk8s"
+  private_subnet_ids   = module.networking.private_subnet_ids
+  eks_cluster_role_arn = module.iam.eks_cluster_role_arn
+  eks_node_role_arn    = module.iam.eks_node_role_arn
+  eks_nodes_sg_id      = module.security.eks_nodes_sg_id
+}
+
 module "alb" {
   source = "../../modules/alb"
 
