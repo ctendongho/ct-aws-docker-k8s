@@ -38,6 +38,18 @@ module "security" {
   project_name = var.project_name
   environment  = var.environment
   vpc_id       = module.networking.vpc_id
+  admin_cidr   = var.admin_cidr
+}
+
+module "rds" {
+  source = "../../modules/rds"
+
+  project_name       = var.project_name
+  private_subnet_ids = module.networking.private_subnet_ids
+  rds_sg_id          = module.security.rds_sg_id
+
+  db_username = var.db_username
+  db_password = var.db_password
 }
 
 module "iam" {
