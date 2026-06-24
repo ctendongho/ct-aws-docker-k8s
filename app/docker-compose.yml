@@ -1,6 +1,0 @@
-services:
-  web:
-    image: ctendongho/ct-aws-dk8s-web:v1
-    container_name: ct-aws-dk8s-compose
-    ports:
-      - "8081:80"

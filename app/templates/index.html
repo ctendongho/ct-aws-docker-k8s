@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CTDK8S Inventory Tracker</title>
+</head>
+<body>
+    <h1>CTDK8S Inventory Tracker</h1>
+
+    <table border="1">
+        <tr>
+            <th>ID</th>
+            <th>Item</th>
+            <th>Category</th>
+            <th>Quantity</th>
+        </tr>
+
+        {% for item in inventory %}
+        <tr>
+            <td>{{ item.id }}</td>
+            <td>{{ item.item }}</td>
+            <td>{{ item.category }}</td>
+            <td>{{ item.quantity }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

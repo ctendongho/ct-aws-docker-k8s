@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ctdk8sinventorytracker-service
+  namespace: ct-aws-dk8s
+
+spec:
+  type: LoadBalancer
+  selector:
+    app: ctdk8sinventorytracker
+  ports:
+  - port: 80
+    targetPort: 5000
