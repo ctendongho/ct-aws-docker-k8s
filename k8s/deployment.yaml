@@ -18,6 +18,17 @@ spec:
         app: ctdk8sinventorytracker
 
     spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: workload
+                operator: In
+                values:
+                - inventory
+
       containers:
       - name: ctdk8sinventorytracker
         image: ctendongho/ctdk8sinventorytracker:v2
