@@ -25,6 +25,25 @@ spec:
         ports:
         - containerPort: 5000
 
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 5000
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+        
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 5000
+          initialDelaySeconds: 15
+          periodSeconds: 20
+          timeoutSeconds: 5
+          failureThreshold: 3
+
         env:
         - name: DB_HOST
           valueFrom:
@@ -49,3 +68,4 @@ spec:
             configMapKeyRef:
               name: mysql-config
               key: DB_NAME
+
