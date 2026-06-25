@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-config
+  namespace: ct-aws-dk8s
+
+data:
+  DB_HOST: "ct-aws-docker-k8s-mysql.cli2wagw6qdi.us-east-2.rds.amazonaws.com"
+  DB_USER: "sqladmin"
+  DB_NAME: "inventorydb"

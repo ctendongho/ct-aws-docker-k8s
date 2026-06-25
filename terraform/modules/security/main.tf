@@ -76,6 +76,14 @@ resource "aws_security_group" "rds" {
   }
 
   ingress {
+  description = "Allow MySQL from project VPC"
+  from_port   = 3306
+  to_port     = 3306
+  protocol    = "tcp"
+  cidr_blocks = ["10.20.0.0/16"]
+}
+
+  ingress {
     description = "Temporary MySQL access from admin workstation"
     from_port   = 3306
     to_port     = 3306

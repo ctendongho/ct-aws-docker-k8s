@@ -1,5 +1,6 @@
 apiVersion: apps/v1
 kind: Deployment
+
 metadata:
   name: ctdk8sinventorytracker
   namespace: ct-aws-dk8s
@@ -19,6 +20,32 @@ spec:
     spec:
       containers:
       - name: ctdk8sinventorytracker
-        image: ctendongho/ctdk8sinventorytracker:v1
+        image: ctendongho/ctdk8sinventorytracker:v2
+
         ports:
         - containerPort: 5000
+
+        env:
+        - name: DB_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: mysql-config
+              key: DB_HOST
+
+        - name: DB_USER
+          valueFrom:
+            configMapKeyRef:
+              name: mysql-config
+              key: DB_USER
+
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: DB_PASSWORD
+
+        - name: DB_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: mysql-config
+              key: DB_NAME
