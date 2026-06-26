@@ -18,6 +18,8 @@ spec:
         app: ctdk8sinventorytracker
 
     spec:
+      serviceAccountName: inventory-app-sa
+
       affinity:
         nodeAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -31,7 +33,7 @@ spec:
 
       containers:
       - name: ctdk8sinventorytracker
-        image: ctendongho/ctdk8sinventorytracker:v2
+        image: ctendongho/ctdk8sinventorytracker:v3
 
         ports:
         - containerPort: 5000
@@ -64,27 +66,12 @@ spec:
           failureThreshold: 3
 
         env:
-        - name: DB_HOST
-          valueFrom:
-            configMapKeyRef:
-              name: mysql-config
-              key: DB_HOST
+        - name: SECRET_NAME
+          value: "ct-aws-dk8s/mysql"
 
-        - name: DB_USER
-          valueFrom:
-            configMapKeyRef:
-              name: mysql-config
-              key: DB_USER
+        - name: AWS_REGION
+          value: "us-east-2" 
 
-        - name: DB_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: mysql-secret
-              key: DB_PASSWORD
 
-        - name: DB_NAME
-          valueFrom:
-            configMapKeyRef:
-              name: mysql-config
-              key: DB_NAME
+        
 

@@ -39,3 +39,14 @@ variable "admin_cidr" {
   type = string
 }
 
+variable "mysql_secret_arn" {
+  type = string
+}
+
+variable "eks_oidc_issuer_url" {
+  type = string
+}
+
+variable "eks_oidc_thumbprint" {
+  type = string
+}

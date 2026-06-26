@@ -33,3 +33,7 @@ output "rds_address" {
 output "rds_port" {
   value = module.rds.rds_port
 }
+
+output "inventory_app_irsa_role_arn" {
+  value = module.iam.inventory_app_irsa_role_arn
+}

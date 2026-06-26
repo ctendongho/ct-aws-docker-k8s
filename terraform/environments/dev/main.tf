@@ -55,8 +55,12 @@ module "rds" {
 module "iam" {
   source = "../../modules/iam"
 
-  project_name = var.project_name
-  environment  = var.environment
+  project_name     = var.project_name
+  environment      = var.environment
+  mysql_secret_arn = var.mysql_secret_arn
+
+  eks_oidc_issuer_url = var.eks_oidc_issuer_url
+  eks_oidc_thumbprint = var.eks_oidc_thumbprint
 }
 
 module "eks" {
