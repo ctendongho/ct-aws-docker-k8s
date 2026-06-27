@@ -1,0 +1,31 @@
+serverFiles:
+  alerting_rules.yml:
+    groups:
+    - name: kubernetes-alerts
+      rules:
+      - alert: PodRestartingFrequently
+        expr: increase(kube_pod_container_status_restarts_total[5m]) > 2
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Pod is restarting frequently"
+          description: "A pod has restarted more than 2 times in the last 5 minutes."
+
+      - alert: PodNotReady
+        expr: kube_pod_status_ready{condition="true"} == 0
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Pod is not ready"
+          description: "A pod has been not ready for more than 3 minutes."
+
+      - alert: NodeNotReady
+        expr: kube_node_status_condition{condition="Ready",status="true"} == 0
+        for: 3m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Node is not ready"
+          description: "A Kubernetes node has been not ready for more than 3 minutes."
