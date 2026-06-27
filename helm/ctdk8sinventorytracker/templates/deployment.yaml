@@ -3,10 +3,10 @@ kind: Deployment
 
 metadata:
   name: ctdk8sinventorytracker
-  namespace: ct-aws-dk8s
+  namespace: {{ .Values.namespace }}
 
 spec:
-  replicas: 2
+  replicas: {{ .Values.replicaCount }}
 
   selector:
     matchLabels:
@@ -18,34 +18,51 @@ spec:
         app: ctdk8sinventorytracker
 
     spec:
+      serviceAccountName: {{ .Values.serviceAccount.name }}
+
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: workload
+                operator: In
+                values:
+                - {{ .Values.affinity.workload }}
+
       containers:
       - name: ctdk8sinventorytracker
-        image: ctendongho/ctdk8sinventorytracker:v2
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
 
         ports:
-        - containerPort: 5000
+        - containerPort: {{ .Values.service.targetPort }}
+
+        resources:
+{{ toYaml .Values.resources | indent 10 }}
+
+        readinessProbe:
+          httpGet:
+            path: {{ .Values.readinessProbe.path }}
+            port: {{ .Values.service.targetPort }}
+          initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+          timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
+          failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
+
+        livenessProbe:
+          httpGet:
+            path: {{ .Values.livenessProbe.path }}
+            port: {{ .Values.service.targetPort }}
+          initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+          timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
+          failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
 
         env:
-        - name: DB_HOST
-          valueFrom:
-            configMapKeyRef:
-              name: mysql-config
-              key: DB_HOST
+        - name: SECRET_NAME
+          value: {{ .Values.env.secretName | quote }}
 
-        - name: DB_USER
-          valueFrom:
-            configMapKeyRef:
-              name: mysql-config
-              key: DB_USER
-
-        - name: DB_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: mysql-secret
-              key: DB_PASSWORD
-
-        - name: DB_NAME
-          valueFrom:
-            configMapKeyRef:
-              name: mysql-config
-              key: DB_NAME
+        - name: AWS_REGION
+          value: {{ .Values.env.awsRegion | quote }}
