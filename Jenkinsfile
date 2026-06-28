@@ -16,7 +16,7 @@ pipeline {
 
         stage('Terraform Init') {
             steps {
-                dir('terraform') {
+                dir('terraform/environments/dev') {
                     sh 'terraform init'
                 }
             }
@@ -24,7 +24,7 @@ pipeline {
 
         stage('Terraform Validate') {
             steps {
-                dir('terraform') {
+                dir('terraform/environments/dev') {
                     sh 'terraform validate'
                 }
             }
