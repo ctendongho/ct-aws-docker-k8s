@@ -93,6 +93,7 @@ pipeline {
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-jenkins']]) {
                     sh '''
                     aws eks update-kubeconfig --region ${AWS_DEFAULT_REGION} --name ct-aws-dk8s-eks
+
                     kubectl set image deployment/${K8S_DEPLOYMENT} \
                       ${K8S_CONTAINER}=${IMAGE_NAME}:${IMAGE_TAG} \
                       -n ${K8S_NAMESPACE}
@@ -103,10 +104,13 @@ pipeline {
 
         stage('Verify Rollout') {
             steps {
-                sh '''
-                kubectl rollout status deployment/${K8S_DEPLOYMENT} -n ${K8S_NAMESPACE} --timeout=180s
-                kubectl get pods -n ${K8S_NAMESPACE}
-                '''
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-jenkins']]) {
+                    sh '''
+                    aws eks update-kubeconfig --region ${AWS_DEFAULT_REGION} --name ct-aws-dk8s-eks
+                    kubectl rollout status deployment/${K8S_DEPLOYMENT} -n ${K8S_NAMESPACE} --timeout=180s
+                    kubectl get pods -n ${K8S_NAMESPACE}
+                    '''
+                }
             }
         }
     }
