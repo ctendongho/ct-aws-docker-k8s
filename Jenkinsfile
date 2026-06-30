@@ -75,6 +75,20 @@ pipeline {
             }
         }
 
+        stage('Trivy Image Scan') {
+            steps {
+                sh '''
+                docker run --rm \
+                  -v /var/run/docker.sock:/var/run/docker.sock \
+                  aquasec/trivy:latest image \
+                  --exit-code 1 \
+                  --severity HIGH,CRITICAL \
+                  --ignore-unfixed \
+                  ${IMAGE_NAME}:${IMAGE_TAG}
+                '''
+            }
+        }
+
         stage('Docker Push') {
             steps {
                 withCredentials([usernamePassword(
@@ -116,23 +130,4 @@ pipeline {
             }
         }
     }
-}
-
-stage('Prepare Next Version') {
-    steps {
-        sh '''
-        CURRENT_VERSION=$(cat version.txt)
-        CURRENT_NUMBER=$(echo $CURRENT_VERSION | sed 's/v//')
-        NEXT_NUMBER=$((CURRENT_NUMBER + 1))
-        NEXT_VERSION="v${NEXT_NUMBER}"
-
-        echo "$NEXT_VERSION" > version.txt
-
-        git config user.name "jenkins"
-        git config user.email "jenkins@local"
-        git add version.txt
-        git commit -m "Prepare next application version $NEXT_VERSION" || true
-        git push origin dev
-        '''
-    }
-}
+}             
