@@ -6,7 +6,6 @@ pipeline {
     }
 
     stages {
-
         stage('Branch Check') {
             steps {
                 echo "Building branch: ${env.BRANCH_NAME}"
@@ -42,6 +41,28 @@ pipeline {
                         sh 'terraform validate'
                     }
                 }
+            }
+        }
+
+        stage('Terraform Plan') {
+            steps {
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'aws-jenkins'
+                ]]) {
+                    dir('terraform/environments/dev') {
+                        sh 'terraform plan -out=tfplan'
+                    }
+                }
+            }
+        }
+
+        stage('Manual Approval for Dev') {
+            when {
+                branch 'dev'
+            }
+            steps {
+                input message: 'Approve Terraform apply for dev?', ok: 'Apply'
             }
         }
     }
