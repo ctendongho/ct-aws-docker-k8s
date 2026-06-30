@@ -51,7 +51,7 @@ pipeline {
                     credentialsId: 'aws-jenkins'
                 ]]) {
                     dir('terraform/environments/dev') {
-                        sh 'terraform plan -out=tfplan'
+                        sh 'terraform plan -var-file=terraform.tfvars -out=tfplan'
                     }
                 }
             }
