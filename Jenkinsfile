@@ -3,27 +3,24 @@ pipeline {
 
     environment {
         AWS_DEFAULT_REGION = 'us-east-2'
+        IMAGE_NAME = 'ctendongho/ctdk8sinventorytracker'
+        IMAGE_TAG = "${env.BUILD_NUMBER}"
+        K8S_NAMESPACE = 'ct-aws-dk8s'
+        K8S_DEPLOYMENT = 'ctdk8sinventorytracker'
+        K8S_CONTAINER = 'ctdk8sinventorytracker'
     }
 
     stages {
         stage('Branch Check') {
             steps {
                 echo "Building branch: ${env.BRANCH_NAME}"
-            }
-        }
-
-        stage('Terraform Version') {
-            steps {
-                sh 'terraform version'
+                echo "Image: ${IMAGE_NAME}:${IMAGE_TAG}"
             }
         }
 
         stage('Terraform Init') {
             steps {
-                withCredentials([[
-                    $class: 'AmazonWebServicesCredentialsBinding',
-                    credentialsId: 'aws-jenkins'
-                ]]) {
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-jenkins']]) {
                     dir('terraform/environments/dev') {
                         sh 'terraform init'
                     }
@@ -33,10 +30,7 @@ pipeline {
 
         stage('Terraform Validate') {
             steps {
-                withCredentials([[
-                    $class: 'AmazonWebServicesCredentialsBinding',
-                    credentialsId: 'aws-jenkins'
-                ]]) {
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-jenkins']]) {
                     dir('terraform/environments/dev') {
                         sh 'terraform validate'
                     }
@@ -46,10 +40,7 @@ pipeline {
 
         stage('Terraform Plan') {
             steps {
-                withCredentials([[
-                    $class: 'AmazonWebServicesCredentialsBinding',
-                    credentialsId: 'aws-jenkins'
-                ]]) {
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-jenkins']]) {
                     dir('terraform/environments/dev') {
                         sh 'terraform plan -var-file=terraform.tfvars -out=tfplan'
                     }
@@ -68,14 +59,54 @@ pipeline {
 
         stage('Terraform Apply') {
             steps {
-                withCredentials([[
-                    $class: 'AmazonWebServicesCredentialsBinding',
-                    credentialsId: 'aws-jenkins'
-                ]]) {
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-jenkins']]) {
                     dir('terraform/environments/dev') {
                         sh 'terraform apply -auto-approve tfplan'
                     }
                 }
+            }
+        }
+
+        stage('Docker Build') {
+            steps {
+                sh 'docker build -t ${IMAGE_NAME}:${IMAGE_TAG} app'
+            }
+        }
+
+        stage('Docker Push') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-creds',
+                    usernameVariable: 'DOCKERHUB_USER',
+                    passwordVariable: 'DOCKERHUB_PASS'
+                )]) {
+                    sh '''
+                    echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin
+                    docker push ${IMAGE_NAME}:${IMAGE_TAG}
+                    '''
+                }
+            }
+        }
+
+        stage('Deploy to EKS') {
+            steps {
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-jenkins']]) {
+                    sh '''
+                    aws eks update-kubeconfig --region ${AWS_DEFAULT_REGION} --name ct-aws-dk8s-eks
+                    kubectl set image deployment/${K8S_DEPLOYMENT} \
+                      ${K8S_CONTAINER}=${IMAGE_NAME}:${IMAGE_TAG} \
+                      -n ${K8S_NAMESPACE}
+                    '''
+                }
+            }
+        }
+
+        stage('Verify Rollout') {
+            steps {
+                sh '''
+                kubectl rollout status deployment/${K8S_DEPLOYMENT} -n ${K8S_NAMESPACE} --timeout=180s
+                kubectl get pods -n ${K8S_NAMESPACE}
+                '''
             }
         }
     }
