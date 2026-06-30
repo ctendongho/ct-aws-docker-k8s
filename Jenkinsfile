@@ -117,3 +117,22 @@ pipeline {
         }
     }
 }
+
+stage('Prepare Next Version') {
+    steps {
+        sh '''
+        CURRENT_VERSION=$(cat version.txt)
+        CURRENT_NUMBER=$(echo $CURRENT_VERSION | sed 's/v//')
+        NEXT_NUMBER=$((CURRENT_NUMBER + 1))
+        NEXT_VERSION="v${NEXT_NUMBER}"
+
+        echo "$NEXT_VERSION" > version.txt
+
+        git config user.name "jenkins"
+        git config user.email "jenkins@local"
+        git add version.txt
+        git commit -m "Prepare next application version $NEXT_VERSION" || true
+        git push origin dev
+        '''
+    }
+}
