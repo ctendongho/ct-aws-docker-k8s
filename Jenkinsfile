@@ -4,17 +4,19 @@ pipeline {
     environment {
         AWS_DEFAULT_REGION = 'us-east-2'
         IMAGE_NAME = 'ctendongho/ctdk8sinventorytracker'
-        IMAGE_TAG = "${env.BUILD_NUMBER}"
         K8S_NAMESPACE = 'ct-aws-dk8s'
         K8S_DEPLOYMENT = 'ctdk8sinventorytracker'
         K8S_CONTAINER = 'ctdk8sinventorytracker'
     }
 
     stages {
-        stage('Branch Check') {
+        stage('Read Version') {
             steps {
-                echo "Building branch: ${env.BRANCH_NAME}"
-                echo "Image: ${IMAGE_NAME}:${IMAGE_TAG}"
+                script {
+                    env.IMAGE_TAG = sh(script: 'cat version.txt', returnStdout: true).trim()
+                    echo "Building branch: ${env.BRANCH_NAME}"
+                    echo "Image: ${env.IMAGE_NAME}:${env.IMAGE_TAG}"
+                }
             }
         }
 
