@@ -67,3 +67,16 @@ pipeline {
         }
     }
 }
+
+stage('Terraform Apply') {
+    steps {
+        withCredentials([[
+            $class: 'AmazonWebServicesCredentialsBinding',
+            credentialsId: 'aws-jenkins'
+        ]]) {
+            dir('terraform/environments/dev') {
+                sh 'terraform apply -auto-approve tfplan'
+            }
+        }
+    }
+}
