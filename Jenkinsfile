@@ -7,6 +7,7 @@ pipeline {
         K8S_NAMESPACE = 'ct-aws-dk8s'
         K8S_DEPLOYMENT = 'ctdk8sinventorytracker'
         K8S_CONTAINER = 'ctdk8sinventorytracker'
+        HELM_RELEASE = 'inventory'
     }
 
     stages {
@@ -134,7 +135,7 @@ pipeline {
             }
         }
 
-        stage('Deploy to EKS') {
+        stage('Deploy to EKS with Helm') {
             steps {
                 withCredentials([[
                     $class: 'AmazonWebServicesCredentialsBinding',
@@ -146,9 +147,11 @@ pipeline {
                       --region ${AWS_DEFAULT_REGION} \
                       --name ct-aws-dk8s-eks
 
-                    kubectl set image deployment/${K8S_DEPLOYMENT} \
-                      ${K8S_CONTAINER}=${IMAGE_NAME}:${IMAGE_TAG} \
-                      -n ${K8S_NAMESPACE}
+                    helm upgrade --install ${HELM_RELEASE} helm/ctdk8sinventorytracker \
+                      -n ${K8S_NAMESPACE} \
+                      --create-namespace \
+                      --set image.repository=${IMAGE_NAME} \
+                      --set image.tag=${IMAGE_TAG}
                     '''
                 }
             }
