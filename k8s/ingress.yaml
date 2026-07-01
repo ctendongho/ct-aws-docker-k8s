@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ctdk8sinventorytracker-ingress
+  namespace: ct-aws-dk8s
+  annotations:
+    alb.ingress.kubernetes.io/load-balancer-name: ctdk8s-ingress-alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80}]'
+spec:
+  ingressClassName: alb
+  rules:
+    - http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: ctdk8sinventorytracker-service
+                port:
+                  number: 80
