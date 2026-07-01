@@ -5,7 +5,7 @@ metadata:
   namespace: ct-aws-dk8s
 
 spec:
-  type: LoadBalancer
+  type: {{ .Values.service.type }}
   selector:
     app: ctdk8sinventorytracker
   ports:

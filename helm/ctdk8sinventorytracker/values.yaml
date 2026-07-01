@@ -4,14 +4,14 @@ namespace: ct-aws-dk8s
 
 image:
   repository: ctendongho/ctdk8sinventorytracker
-  tag: v3
+  tag: v4
   pullPolicy: IfNotPresent
 
 serviceAccount:
   name: inventory-app-sa
 
 service:
-  type: LoadBalancer
+  type: ClusterIP
   port: 80
   targetPort: 5000
 
@@ -52,3 +52,8 @@ autoscaling:
 
 podDisruptionBudget:
   minAvailable: 1
+
+ingress:
+  enabled: true
+  host: inventory.ctappstracker.com
+  certificateArn: arn:aws:acm:us-east-2:326095712541:certificate/4a5b1267-6b24-4a3f-b345-934bf10bc7be
