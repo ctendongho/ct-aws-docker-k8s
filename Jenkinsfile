@@ -179,4 +179,44 @@ pipeline {
             }
         }
     }
-}         
+}        
+
+        stage('Platform Status Check') {
+            steps {
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'aws-jenkins'
+                ]]) {
+                    sh '''
+                    aws eks update-kubeconfig --region ${AWS_DEFAULT_REGION} --name ct-aws-dk8s-eks
+
+                    echo "===== Helm Release Status ====="
+                    helm status ${HELM_RELEASE} -n ${K8S_NAMESPACE}
+
+                    echo "===== Application Resources ====="
+                    kubectl get deployment,pods,svc,hpa,pdb -n ${K8S_NAMESPACE}
+
+                    echo "===== Application URL Check ====="
+                    APP_URL=$(kubectl get svc ctdk8sinventorytracker-service -n ${K8S_NAMESPACE} -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+                    echo "Application URL: http://${APP_URL}"
+                    curl -I http://${APP_URL}
+
+                    echo "===== Monitoring Resources ====="
+                    kubectl get pods,svc -n monitoring
+                    kubectl rollout status deployment/grafana -n monitoring --timeout=120s
+                    kubectl rollout status deployment/prometheus-server -n monitoring --timeout=120s
+
+                    echo "===== RDS MySQL Status ====="
+                    aws rds describe-db-instances \
+                      --db-instance-identifier ct-aws-docker-k8s-mysql \
+                      --query "DBInstances[0].[DBInstanceStatus,Engine,EngineVersion,Endpoint.Address]" \
+                      --output table
+                                   
+                    echo "===== Recent Application Events ====="
+                    kubectl get events -n ${K8S_NAMESPACE} --sort-by=.lastTimestamp | tail -20
+                    '''
+                }
+            }
+        }
+    }
+}
