@@ -160,9 +160,7 @@ pipeline {
                     kubectl get deployment,pods,svc,hpa,pdb -n ${K8S_NAMESPACE}
 
                     echo "===== Application URL Check ====="
-                    APP_URL=$(kubectl get svc ctdk8sinventorytracker-service -n ${K8S_NAMESPACE} -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
-                    echo "Application URL: http://${APP_URL}"
-                    curl -I http://${APP_URL}
+                    curl -I https://inventory.ctappstracker.com
 
                     echo "===== Monitoring Resources ====="
                     kubectl get pods,svc -n monitoring
