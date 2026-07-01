@@ -11,12 +11,10 @@ pipeline {
     }
 
     stages {
-
         stage('Read Version') {
             steps {
                 script {
                     env.IMAGE_TAG = sh(script: 'cat version.txt', returnStdout: true).trim()
-
                     echo "Branch: ${env.BRANCH_NAME}"
                     echo "Docker Image: ${IMAGE_NAME}:${IMAGE_TAG}"
                 }
@@ -28,7 +26,6 @@ pipeline {
                 withSonarQubeEnv('SonarQube') {
                     script {
                         def scannerHome = tool 'SonarScanner'
-
                         sh """
                         ${scannerHome}/bin/sonar-scanner \
                           -Dsonar.host.url=${SONAR_HOST_URL}
@@ -36,14 +33,11 @@ pipeline {
                     }
                 }
             }
-        } 
-     
+        }
+
         stage('Terraform Init') {
             steps {
-                withCredentials([[
-                    $class: 'AmazonWebServicesCredentialsBinding',
-                    credentialsId: 'aws-jenkins'
-                ]]) {
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-jenkins']]) {
                     dir('terraform/environments/dev') {
                         sh 'terraform init'
                     }
@@ -53,10 +47,7 @@ pipeline {
 
         stage('Terraform Validate') {
             steps {
-                withCredentials([[
-                    $class: 'AmazonWebServicesCredentialsBinding',
-                    credentialsId: 'aws-jenkins'
-                ]]) {
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-jenkins']]) {
                     dir('terraform/environments/dev') {
                         sh 'terraform validate'
                     }
@@ -66,10 +57,7 @@ pipeline {
 
         stage('Terraform Plan') {
             steps {
-                withCredentials([[
-                    $class: 'AmazonWebServicesCredentialsBinding',
-                    credentialsId: 'aws-jenkins'
-                ]]) {
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-jenkins']]) {
                     dir('terraform/environments/dev') {
                         sh 'terraform plan -var-file=terraform.tfvars -out=tfplan'
                     }
@@ -88,10 +76,7 @@ pipeline {
 
         stage('Terraform Apply') {
             steps {
-                withCredentials([[
-                    $class: 'AmazonWebServicesCredentialsBinding',
-                    credentialsId: 'aws-jenkins'
-                ]]) {
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-jenkins']]) {
                     dir('terraform/environments/dev') {
                         sh 'terraform apply -auto-approve tfplan'
                     }
@@ -126,7 +111,6 @@ pipeline {
                     usernameVariable: 'DOCKERHUB_USER',
                     passwordVariable: 'DOCKERHUB_PASS'
                 )]) {
-
                     sh '''
                     echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin
                     docker push ${IMAGE_NAME}:${IMAGE_TAG}
@@ -137,15 +121,9 @@ pipeline {
 
         stage('Deploy to EKS with Helm') {
             steps {
-                withCredentials([[
-                    $class: 'AmazonWebServicesCredentialsBinding',
-                    credentialsId: 'aws-jenkins'
-                ]]) {
-
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-jenkins']]) {
                     sh '''
-                    aws eks update-kubeconfig \
-                      --region ${AWS_DEFAULT_REGION} \
-                      --name ct-aws-dk8s-eks
+                    aws eks update-kubeconfig --region ${AWS_DEFAULT_REGION} --name ct-aws-dk8s-eks
 
                     helm upgrade --install ${HELM_RELEASE} helm/ctdk8sinventorytracker \
                       -n ${K8S_NAMESPACE} \
@@ -159,34 +137,19 @@ pipeline {
 
         stage('Verify Rollout') {
             steps {
-                withCredentials([[
-                    $class: 'AmazonWebServicesCredentialsBinding',
-                    credentialsId: 'aws-jenkins'
-                ]]) {
-
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-jenkins']]) {
                     sh '''
-                    aws eks update-kubeconfig \
-                      --region ${AWS_DEFAULT_REGION} \
-                      --name ct-aws-dk8s-eks
-
-                    kubectl rollout status deployment/${K8S_DEPLOYMENT} \
-                      -n ${K8S_NAMESPACE} \
-                      --timeout=180s
-
+                    aws eks update-kubeconfig --region ${AWS_DEFAULT_REGION} --name ct-aws-dk8s-eks
+                    kubectl rollout status deployment/${K8S_DEPLOYMENT} -n ${K8S_NAMESPACE} --timeout=180s
                     kubectl get pods -n ${K8S_NAMESPACE}
                     '''
                 }
             }
         }
-    }
-}        
 
         stage('Platform Status Check') {
             steps {
-                withCredentials([[
-                    $class: 'AmazonWebServicesCredentialsBinding',
-                    credentialsId: 'aws-jenkins'
-                ]]) {
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-jenkins']]) {
                     sh '''
                     aws eks update-kubeconfig --region ${AWS_DEFAULT_REGION} --name ct-aws-dk8s-eks
 
@@ -211,7 +174,7 @@ pipeline {
                       --db-instance-identifier ct-aws-docker-k8s-mysql \
                       --query "DBInstances[0].[DBInstanceStatus,Engine,EngineVersion,Endpoint.Address]" \
                       --output table
-                                   
+
                     echo "===== Recent Application Events ====="
                     kubectl get events -n ${K8S_NAMESPACE} --sort-by=.lastTimestamp | tail -20
                     '''
