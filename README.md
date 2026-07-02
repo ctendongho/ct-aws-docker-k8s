@@ -11,7 +11,7 @@
 ![Grafana](https://img.shields.io/badge/Grafana-F46800?style=for-the-badge&logo=grafana&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-2EA44F?style=for-the-badge)
 
-A production-ready application delivery platform built on AWS using Infrastructure as Code, containerization, Kubernetes orchestration, and an automated CI/CD pipeline. The platform deploys a containerized Inventory Tracking application to Amazon EKS using Terraform, Docker, Helm, and Jenkins while integrating security scanning, monitoring, and high availability best practices.
+A production-ready application delivery platform built on AWS using Infrastructure as Code, containerization, Kubernetes orchestration, and an automated CI/CD pipeline. The platform deploys a containerized Inventory Tracking application to Amazon EKS using Terraform, Docker, Helm, and Jenkins while integrating security scanning, monitoring, and high availability for fault tolerance and disaster recovery.
 
 ---
 
@@ -187,6 +187,16 @@ Build the Docker image
 
 ```bash
 docker build -t ctendongho/ctdk8sinventorytracker:v1 app/
+```
+
+Scan the Docker image 
+
+```bash
+trivy image \
+  --severity HIGH,CRITICAL \
+  --ignore-unfixed \
+  --scanners vuln \
+  ctendongho/ctdk8sinventorytracker:v4
 ```
 
 Push the image
